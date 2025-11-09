@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.securitytester.controller.MainController"
+      spacing="10" stylesheets="/styles/styles.css">
+      
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <MenuBar>
+        <Menu text="File">
+            <MenuItem text="Save Results" onAction="#saveResults"/>
+            <MenuItem text="Exit" onAction="#exit"/>
+        </Menu>
+        <Menu text="Tools">
+            <MenuItem text="Clear History" onAction="#clearHistory"/>
+            <MenuItem text="Settings" onAction="#showSettings"/>
+        </Menu>
+        <Menu text="Help">
+            <MenuItem text="About" onAction="#showAbout"/>
+        </Menu>
+    </MenuBar>
+
+    <TabPane VBox.vgrow="ALWAYS">
+        <Tab text="Request" closable="false">
+            <VBox spacing="10">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="methodCombo" prefWidth="100"/>
+                    <TextField fx:id="urlField" HBox.hgrow="ALWAYS" promptText="Enter URL"/>
+                    <Button text="Send" onAction="#sendRequest"/>
+                </HBox>
+
+                <TitledPane text="Headers" expanded="true">
+                    <VBox spacing="5">
+                        <TableView fx:id="headersTable" prefHeight="150">
+                            <columns>
+                                <TableColumn text="Name" fx:id="headerNameColumn"/>
+                                <TableColumn text="Value" fx:id="headerValueColumn"/>
+                            </columns>
+                        </TableView>
+                        <HBox spacing="5">
+                            <Button text="Add Header" onAction="#addHeader"/>
+                            <Button text="Remove Selected" onAction="#removeHeader"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Request Body" expanded="true">
+                    <VBox spacing="5">
+                        <TextArea fx:id="requestBody" prefRowCount="8" wrapText="true"/>
+                        <HBox spacing="5">
+                            <Button text="Format JSON" onAction="#formatJson"/>
+                            <Button text="Clear" onAction="#clearRequestBody"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+        </Tab>
+
+        <Tab text="Response" closable="false">
+            <VBox spacing="10">
+                <Label fx:id="responseStatus"/>
+                <TitledPane text="Response Headers" expanded="false">
+                    <VBox>
+                        <TableView fx:id="responseHeadersTable" prefHeight="150">
+                            <columns>
+                                <TableColumn text="Name" fx:id="responseHeaderNameColumn" prefWidth="200"/>
+                                <TableColumn text="Value" fx:id="responseHeaderValueColumn" prefWidth="400"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </TitledPane>
+                <TextArea fx:id="responseBody" VBox.vgrow="ALWAYS" wrapText="true" editable="false"/>
+            </VBox>
+        </Tab>
+
+        <Tab text="Security Scan" closable="false">
+            <VBox spacing="10">
+                <ListView fx:id="scanResults" VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </Tab>
+
+        <Tab text="Crawler" closable="false">
+            <VBox spacing="10">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="crawlerUrl" HBox.hgrow="ALWAYS" promptText="Enter URL to crawl"/>
+                    <Spinner fx:id="depthSpinner" prefWidth="100"/>
+                    <Button text="Start Crawling" onAction="#startCrawling"/>
+                </HBox>
+                <ProgressBar fx:id="crawlerProgress" prefWidth="Infinity" progress="0"/>
+                <ListView fx:id="crawlerResults" VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </Tab>
+    </TabPane>
+
+    <HBox spacing="10">
+        <Label text="Status:"/>
+        <Label fx:id="statusLabel" text="Ready"/>
+    </HBox>
+
+</VBox>

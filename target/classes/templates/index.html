@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Security Tester Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar-brand { font-weight: 600; }
+        .card { border: none; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); }
+        .nav-tabs .nav-link.active { font-weight: 500; }
+        pre { max-height: 400px; overflow-y: auto; background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 0.375rem; }
+        .vulnerability-high { color: #dc3545; border-left: 4px solid #dc3545; padding-left: 1rem; }
+        .vulnerability-medium { color: #ffc107; border-left: 4px solid #ffc107; padding-left: 1rem; }
+        .vulnerability-low { color: #0dcaf0; border-left: 4px solid #0dcaf0; padding-left: 1rem; }
+        .header-table { font-family: monospace; }
+        .scan-result-item { margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 0.25rem; background: rgba(0,0,0,0.05); }
+        #crawlerProgress { transition: width 0.3s ease-in-out; }
+        .custom-header-row { display: flex; margin-bottom: 0.5rem; }
+        .custom-header-row input { margin-right: 0.5rem; }
+    </style>
+<body class="pb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-shield-check me-2"></i>Security Tester Pro</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/"><i class="bi bi-send me-1"></i>Request</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history"><i class="bi bi-clock-history me-1"></i>History</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row g-4">
+            <!-- Request Panel -->
+            <div class="col-lg-7">
+                <div class="card mb-4">
+                    <div class="card-header bg-white py-3">
+                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#requestTab">
+                                    <i class="bi bi-send me-1"></i>Request Builder
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#crawlerTab">
+                                    <i class="bi bi-diagram-2 me-1"></i>Crawler
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body tab-content">
+                        <!-- Request Builder Tab -->
+                        <div class="tab-pane fade show active" id="requestTab">
+                            <form id="requestForm">
+                                <div class="mb-3">
+                                    <div class="input-group">
+                                        <select class="form-select flex-grow-0" style="width: auto;" id="method">
+                                            <option>GET</option>
+                                            <option>POST</option>
+                                            <option>PUT</option>
+                                            <option>DELETE</option>
+                                            <option>HEAD</option>
+                                            <option>OPTIONS</option>
+                                        </select>
+                                        <input type="url" class="form-control" id="url" placeholder="Enter URL" required>
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="bi bi-send-fill me-1"></i>Send
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label d-flex justify-content-between">
+                                        <span><i class="bi bi-card-heading me-1"></i>Headers</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addHeader()">
+                                            <i class="bi bi-plus"></i> Add Header
+                                        </button>
+                                    </label>
+                                    <div id="headersContainer"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-code-square me-1"></i>Request Body
+                                        <small class="text-muted">(for POST/PUT requests)</small>
+                                    </label>
+                                    <div class="btn-group btn-group-sm mb-2">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="formatJson()">Format JSON</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('body').value = ''">Clear</button>
+                                    </div>
+                                    <textarea class="form-control font-monospace" id="body" rows="8"></textarea>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Crawler Tab -->
+                        <div class="tab-pane fade" id="crawlerTab">
+                            <form id="crawlerForm" class="mb-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Target URL</label>
+                                    <input type="url" class="form-control" id="crawlerUrl" required>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Max Depth</label>
+                                        <input type="number" class="form-control" id="crawlerDepth" value="3" min="1" max="10">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Timeout (seconds)</label>
+                                        <input type="number" class="form-control" id="crawlerTimeout" value="30" min="1">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="respectRobots" checked>
+                                        <label class="form-check-label">Respect robots.txt</label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-diagram-2 me-1"></i>Start Crawling
+                                </button>
+                            </form>
+                            <div class="progress mb-3" style="height: 20px;">
+                                <div id="crawlerProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+                            </div>
+                            <div id="crawlerResults" class="d-none">
+                                <h6 class="border-bottom pb-2 mb-3">Discovered URLs</h6>
+                                <div class="list-group list-group-flush" id="crawledUrlsList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response & Results Panel -->
+            <div class="col-lg-5">
+                <!-- Response Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="bi bi-arrow-return-right me-1"></i>Response
+                            </h6>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary" onclick="copyResponse()">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="clearResponse()">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="px-3 py-2 bg-light border-bottom">
+                            <small class="text-muted" id="responseStatus"></small>
+                        </div>
+                        <pre class="mb-0" id="response"><code>No response yet</code></pre>
+                    </div>
+                </div>
+
+                <!-- Security Scan Results -->
+                <div class="card">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0">
+                            <i class="bi bi-shield-exclamation me-1"></i>Security Scan Results
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="scanResults" class="list-group list-group-flush">
+                            <div class="text-center text-muted py-3">No scan results yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/xml.min.js"></script>
+    <script>
+        hljs.highlightAll();
+        
+        // Header Management
+        function addHeader() {
+            const container = document.getElementById('headersContainer');
+            const row = document.createElement('div');
+            row.className = 'custom-header-row';
+            row.innerHTML = `
+                <input type="text" class="form-control form-control-sm" placeholder="Header name">
+                <input type="text" class="form-control form-control-sm" placeholder="Value">
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        // Add some common headers by default
+        addHeader(); // User-Agent
+        addHeader(); // Accept
+
+        // JSON Formatting
+        function formatJson() {
+            const textarea = document.getElementById('body');
+            try {
+                const formatted = JSON.stringify(JSON.parse(textarea.value), null, 2);
+                textarea.value = formatted;
+            } catch (e) {
+                // If not valid JSON, leave as is
+            }
+        }
+
+        // Response Management
+        function copyResponse() {
+            const response = document.getElementById('response').textContent;
+            navigator.clipboard.writeText(response);
+            showToast('Response copied to clipboard');
+        }
+
+        function clearResponse() {
+            document.getElementById('response').innerHTML = '<code>No response yet</code>';
+            document.getElementById('responseStatus').textContent = '';
+            document.getElementById('scanResults').innerHTML = 
+                '<div class="text-center text-muted py-3">No scan results yet</div>';
+        }
+
+        // Request Handling
+        document.getElementById('requestForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Sending...';
+            
+            try {
+                // Clear previous response
+                document.getElementById('response').innerHTML = '<code>Sending request...</code>';
+                document.getElementById('responseStatus').textContent = '';
+                document.getElementById('scanResults').innerHTML = 
+                    '<div class="text-center text-muted py-3">Scanning...</div>';
+                
+                // Collect headers
+                const headers = {};
+                document.querySelectorAll('#headersContainer .custom-header-row').forEach(row => {
+                    const [nameInput, valueInput] = row.querySelectorAll('input');
+                    const name = nameInput.value.trim();
+                    const value = valueInput.value.trim();
+                    if (name && value) headers[name] = value;
+                });
+
+                const response = await fetch('/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: document.getElementById('url').value,
+                        method: document.getElementById('method').value,
+                        headers: headers,
+                        body: document.getElementById('body').value
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // Update Response
+                document.getElementById('responseStatus').textContent = 
+                    `Status: ${result.statusCode} | Size: ${(result.responseBody || '').length} bytes`;
+                
+                const responseBody = result.responseBody || 'No response body';
+                const isJson = responseBody.startsWith('{') || responseBody.startsWith('[');
+                const language = isJson ? 'json' : 'html';
+                
+                document.getElementById('response').innerHTML = 
+                    `<code class="language-${language}">${escapeHtml(responseBody)}</code>`;
+                hljs.highlightAll();
+
+                // Update Scan Results
+                updateScanResults(result.scanResults || '');
+
+            } catch (error) {
+                document.getElementById('response').innerHTML = 
+                    `<code class="text-danger">Error: ${error.message}</code>`;
+                document.getElementById('scanResults').innerHTML = 
+                    '<div class="text-center text-danger py-3">Scan failed</div>';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="bi bi-send-fill me-1"></i>Send';
+            }
+        };
+
+        // Crawler Handling
+        document.getElementById('crawlerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('crawlerUrl').value;
+            const depth = document.getElementById('crawlerDepth').value;
+            
+            const progress = document.getElementById('crawlerProgress');
+            const results = document.getElementById('crawlerResults');
+            const urlsList = document.getElementById('crawledUrlsList');
+            
+            progress.style.width = '0%';
+            progress.classList.remove('bg-success', 'bg-danger');
+            results.classList.add('d-none');
+            urlsList.innerHTML = '';
+            
+            try {
+                progress.style.width = '50%';
+                const response = await fetch(`/crawl?url=${encodeURIComponent(url)}&depth=${depth}`);
+                const urls = await response.json();
+                
+                progress.style.width = '100%';
+                progress.classList.add('bg-success');
+                
+                results.classList.remove('d-none');
+                urls.forEach(url => {
+                    const item = document.createElement('a');
+                    item.href = url;
+                    item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                    item.innerHTML = `
+                        <span class="text-truncate">${escapeHtml(url)}</span>
+                        <button class="btn btn-sm btn-outline-primary ms-2" onclick="loadUrl('${escapeHtml(url)}'); return false;">
+                            <i class="bi bi-arrow-right-circle"></i>
+                        </button>
+                    `;
+                    urlsList.appendChild(item);
+                });
+                
+            } catch (error) {
+                progress.style.width = '100%';
+                progress.classList.add('bg-danger');
+                results.classList.remove('d-none');
+                urlsList.innerHTML = `<div class="alert alert-danger">Crawling failed: ${error.message}</div>`;
+            }
+        };
+
+        // Helper Functions
+        function updateScanResults(findings) {
+            const container = document.getElementById('scanResults');
+            container.innerHTML = '';
+            
+            if (!findings) {
+                container.innerHTML = '<div class="text-center text-muted py-3">No security findings</div>';
+                return;
+            }
+
+            const results = findings.split('\n').filter(f => f.trim());
+            results.forEach(finding => {
+                const div = document.createElement('div');
+                div.className = 'scan-result-item';
+                
+                // Determine severity
+                let severityClass = 'vulnerability-medium';
+                if (finding.includes('A01') || finding.includes('A02')) {
+                    severityClass = 'vulnerability-high';
+                } else if (finding.includes('A09') || finding.includes('A10')) {
+                    severityClass = 'vulnerability-low';
+                }
+                
+                div.classList.add(severityClass);
+                div.textContent = finding;
+                container.appendChild(div);
+            });
+        }
+
+        function loadUrl(url) {
+            document.getElementById('url').value = url;
+            document.querySelector('#requestTab button').click();
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Initialize common headers
+        window.addEventListener('load', () => {
+            const defaultHeaders = {
+                'User-Agent': 'SecurityTesterPro/1.0',
+                'Accept': '*/*'
+            };
+            
+            document.querySelectorAll('#headersContainer .custom-header-row').forEach((row, index) => {
+                const [nameInput, valueInput] = row.querySelectorAll('input');
+                const headerName = Object.keys(defaultHeaders)[index];
+                if (headerName) {
+                    nameInput.value = headerName;
+                    valueInput.value = defaultHeaders[headerName];
+                }
+            });
+        });
+    </script>
+</body>
+</html>
