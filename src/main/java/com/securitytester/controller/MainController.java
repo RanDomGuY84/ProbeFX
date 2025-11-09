@@ -82,7 +82,7 @@ public class MainController {
     responseHeadersTable.setItems(responseHeaders);
 
         // Add default headers
-        headers.add(Map.entry("User-Agent", "SecurityTesterPro/1.0"));
+    headers.add(Map.entry("User-Agent", "ProbeFX/1.0"));
         headers.add(Map.entry("Accept", "*/*"));
     }
 
@@ -278,10 +278,10 @@ public class MainController {
 
     @FXML
     private void showAbout() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("About Security Tester Pro");
-        alert.setHeaderText("Security Tester Pro");
-        alert.setContentText("Version 1.0\nA powerful security testing tool with OWASP scanner integration.");
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle("About ProbeFX");
+    alert.setHeaderText("ProbeFX");
+    alert.setContentText("Version 1.0\nA powerful security testing tool with OWASP scanner integration.");
         alert.showAndWait();
     }
 

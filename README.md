@@ -1,5 +1,7 @@
 # Security Tester Application
 
+![ProbeFX logo](assets/logo.svg)
+
 A Spring Boot application for security testing, inspired by Burp Suite. This tool is designed for educational and penetration testing purposes, providing:
 
 - **Custom HTTP Requests:** Build and send GET, POST, PUT, DELETE requests with custom headers and bodies.

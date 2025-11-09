@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public class CrawlerService {
     private static final int DEFAULT_TIMEOUT_MS = 5000;
-    private static final String USER_AGENT = "SecurityTesterPro/1.0";
+    private static final String USER_AGENT = "ProbeFX/1.0";
     private static final int MAX_PAGES = 500; // hard cap to avoid runaway crawls
 
     /**
